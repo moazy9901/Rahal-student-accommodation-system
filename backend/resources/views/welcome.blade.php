@@ -1537,10 +1537,19 @@
                 </h1>
 
                 <!-- Last login -->
-                <p class="mt-8 text-3xl text-gray-600">
-                    <span class="font-bold">Last Login</span> · June 22nd 2024
-                </p>
+                @php
 
+                $admin = \App\Models\User::where('role', 'admin')->first();
+
+                @endphp
+
+                <p class="mt-8 text-3xl text-gray-600">
+                    <span class="font-bold">Last Login</span> ·
+                    {{ $admin && $admin->last_login
+                    ? $admin->last_login->format('F jS, Y H:i A')
+                    : 'Never'
+                    }}
+                </p>
                 <!-- Subtext -->
                 <p class="mt-6 text-2xl text-gray-500">
                     Buckle up — we ought to ruin someone’s life now
@@ -1553,12 +1562,12 @@
                     <img src="{{ Storage::url('admin/ava3.png') }}" alt="Admin Avatar"
                         class="w-full h-full object-cover">
                 </div>
-
-                <!-- Login Button -->
+                @guest
                 <button class="mt-6 w-48 bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition"
                     onclick="window.location='{{ route('login') }}'">
                     LOGIN
                 </button>
+                @endguest
             </div>
 
 
