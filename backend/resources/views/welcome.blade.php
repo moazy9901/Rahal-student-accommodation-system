@@ -1550,7 +1550,7 @@
             <div class="flex flex-col items-center w-full md:w-1/3 mt-10 md:mt-0 self-start">
                 <!-- Avatar -->
                 <div class="w-80 h-80 rounded-full overflow-hidden flex items-center justify-center">
-                    <img src="{{ Storage::url('admin/ava2.jpeg') }}" alt="Admin Avatar"
+                    <img src="{{ Storage::url('admin/ava3.png') }}" alt="Admin Avatar"
                         class="w-full h-full object-cover">
                 </div>
 
