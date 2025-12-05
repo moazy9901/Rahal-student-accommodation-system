@@ -1,6 +1,6 @@
 // src/app/components/property-detail/property-detail.component.ts
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, Input  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { PropertyService } from '../../core/services/property/property.service';
@@ -18,6 +18,7 @@ import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
+import { FavouriteService } from '../../core/services/favourite/favourite-service';
 
 @Component({
   selector: 'app-property-detail',
@@ -40,10 +41,15 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./property-detail.css'],
 })
 export class PropertyDetail implements OnInit {
+
+    @Input() propertys: any;
   // Using Angular 20 Signals for reactive state management
   property = signal<Property | null>(null);
   activeImageIndex = signal<number>(0);
   isSaved = signal<boolean>(false);
+
+
+
 
   // Computed signal for formatted price
   formattedPrice = computed(() => {
@@ -79,7 +85,8 @@ export class PropertyDetail implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private propertyService: PropertyService,
+    private propertyService:PropertyService,
+    private favouriteService: FavouriteService,
     private messageService: MessageService
   ) {}
 
@@ -109,24 +116,31 @@ export class PropertyDetail implements OnInit {
   /**
    * Toggle save/favorite status
    */
-  onToggleSave(): void {
-    const prop = this.property();
-    if (!prop) return;
+  onToggleSave(id:number) {
+    // const prop = this.property();
+    // if (!prop) return;
 
-    this.propertyService.toggleSaved(prop.id).subscribe({
-      next: (response) => {
-        this.isSaved.set(response.saved);
-        this.showMessage(
-          'success',
-          response.saved ? 'Saved!' : 'Removed',
-          response.message
-        );
-      },
-      error: (error) => {
-        console.error('Error toggling save:', error);
-        this.showMessage('error', 'Error', 'Failed to update saved status');
-      },
-    });
+    // this.propertyService.toggleSaved(prop.id).subscribe({
+    //   next: (response) => {
+    //     this.isSaved.set(response.saved);
+    //     this.showMessage(
+    //       'success',
+    //       response.saved ? 'Saved!' : 'Removed',
+    //       response.message
+    //     );
+    //   },
+    //   error: (error) => {
+    //     console.error('Error toggling save:', error);
+    //     this.showMessage('error', 'Error', 'Failed to update saved status');
+    //   },
+    // });
+this.favouriteService.toggleFavourite(id).subscribe(()=>{
+
+        this.propertys.is_favourite = !this.propertys.is_favourite; // عشان تتغير لونها بدون Reload
+
+
+});
+
   }
 
   /**
