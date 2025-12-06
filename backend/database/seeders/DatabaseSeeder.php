@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Google\Service\Dfareporting\Resource\Cities;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -22,7 +23,8 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             AdminSeeder::class,
-            RecommendationQuestionSeeder::class
+            RecommendationQuestionSeeder::class,
+            CitiesTableSeeder::class
         ]);
     }
 }

@@ -133,15 +133,70 @@ export class PropertyDetail implements OnInit {
     //     console.error('Error toggling save:', error);
     //     this.showMessage('error', 'Error', 'Failed to update saved status');
     //   },
-    // });
-this.favouriteService.toggleFavourite(id).subscribe(()=>{
+//     });
+// this.favouriteService.toggleFavourite(id).subscribe(() => {
 
-        this.propertys.is_favourite = !this.propertys.is_favourite; // عشان تتغير لونها بدون Reload
+//   console.log('is_favourite قبل التغيير:', this.propertys?.is_favourite);
+// });
+// this.favouriteService.toggleFavourite(id).subscribe((res:any) => {
+//   this.propertys!.is_favourite = res.is_favourite;
+// });
+
+// this.favouriteService.toggleFavourite(id).subscribe((res: any) => {
+//   // نحفظ القيمة الجديدة فورًا في signal
+//   this.isSaved.set(!this.propertys?.is_favourite);
+
+//   // نزامن propertys مع القيمة الجديدة
+//   if (this.propertys) {
+//     this.propertys.is_favourite = this.isSaved();
+//   }
+
+  // console يطبع القيمة بعد التغيير
+//   console.log('is_favourite بعد التغيير:', this.propertys?.is_favourite);
+// });
+
+//   }
+
+//   }
 
 
+// this.favouriteService.toggleFavourite(id).subscribe((res: any) => {
+//   // نحفظ القيمة الجديدة فورًا في signal
+//   this.isSaved.set(!this.propertys?.is_favourite);
+
+//   // نزامن propertys مع القيمة الجديدة
+//   if (this.propertys) {
+//     this.propertys.is_favourite = this.isSaved();
+//   }
+
+//   // console يطبع القيمة بعد التغيير
+//   console.log('is_favourite بعد التغيير:', this.propertys?.is_favourite);
+// });
+
+ this.favouriteService.toggleFavourite(id).subscribe((res: any) => {
+  // نحفظ القيمة الجديدة فورًا في signal
+  this.isSaved.set(!this.propertys?.is_favourite);
+
+  // نزامن propertys مع القيمة الجديدة
+  if (this.propertys) {
+    this.propertys.is_favourite = this.isSaved();
+  }
+
+  // console يطبع القيمة بعد التغيير
+  console.log('is_favourite بعد التغيير:', this.propertys?.is_favourite);
 });
 
+
+
+
+
+
+
+
   }
+
+
+
 
   /**
    * Handle booking action
