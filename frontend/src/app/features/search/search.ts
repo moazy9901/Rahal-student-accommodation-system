@@ -8,6 +8,7 @@ import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { InputTextModule } from 'primeng/inputtext';
+import { ActivatedRoute } from '@angular/router';
 
 interface Listing {
   title: string;
@@ -43,7 +44,10 @@ interface Listing {
   styleUrl: './search.css',
 })
 export class Search implements OnInit {
-  constructor(private propertyService: PropertySearch) {}
+  constructor(
+    private route: ActivatedRoute,
+    private propertyService: PropertySearch
+  ) {}
   // Search signal
   searchQuery = signal('');
 
@@ -109,7 +113,12 @@ export class Search implements OnInit {
   ];
 
   ngOnInit() {
-    this.loadListings();
+    this.route.queryParams.subscribe((params) => {
+      const keyword = params['keyword'] || '';
+      this.searchQuery.set(keyword);
+      this.currentPage.set(1);
+      this.loadListings();
+    });
   }
 
   // Load listings from API
