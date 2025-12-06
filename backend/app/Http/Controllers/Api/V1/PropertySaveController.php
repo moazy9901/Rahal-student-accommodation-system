@@ -34,4 +34,10 @@ class PropertySaveController extends Controller
             'is_favourite' => $isSaved,
         ]);
     }
+
+    public function myFavourites()
+    {
+        $user = Auth::user();
+        return response()->json($user->savedProperties);
+    }
 }

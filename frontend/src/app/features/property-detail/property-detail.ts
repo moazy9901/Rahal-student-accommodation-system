@@ -243,15 +243,15 @@ export class PropertyDetail implements OnInit {
 // });
 
  this.favouriteService.toggleFavourite(id).subscribe((res: any) => {
-  // نحفظ القيمة الجديدة فورًا في signal
+
   this.isSaved.set(!this.propertys?.is_favourite);
 
-  // نزامن propertys مع القيمة الجديدة
+
   if (this.propertys) {
     this.propertys.is_favourite = this.isSaved();
   }
 
-  // console يطبع القيمة بعد التغيير
+
   console.log('is_favourite بعد التغيير:', this.propertys?.is_favourite);
 });
 
