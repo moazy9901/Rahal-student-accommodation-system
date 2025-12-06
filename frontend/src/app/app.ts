@@ -3,6 +3,7 @@ import { Loader } from './shared/loader/loader';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { RouterModule } from "@angular/router";
+import {AuthService} from './core/services/authService/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -14,5 +15,15 @@ import { RouterModule } from "@angular/router";
 export class App {
   protected readonly title = signal('frontend');
 
-  constructor(private messageService: MessageService) {}
+
+  constructor(private auth: AuthService, private messageService: MessageService) {
+    const token = this.auth.getToken();
+    const user = this.auth.getUser();
+    if (token && user) {
+      this.auth.refreshUser().subscribe({
+        next: (res) => this.auth.storeUser(res.user),
+        error: () => this.auth.clearUser()
+      });
+    }
+  }
 }

@@ -24,6 +24,8 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
+    this.clearToken();
+    this.clearUser();
     return this.http.post(`${this.apiBase}/logout`, {}, { withCredentials: true });
   }
 
@@ -41,17 +43,19 @@ export class AuthService {
 
   storeUser(user: any) {
     localStorage.setItem('user', JSON.stringify(user));
-    this.userSubject.next(user); // 🔥 إشعار الـ navbar
+    this.userSubject.next(user);
+  }
+
+  refreshUser(): Observable<any> {
+    return this.http.get(`${this.apiBase}/me`, { withCredentials: true });
   }
 
   getUser(): any | null {
-    const v = localStorage.getItem('user');
-    if (!v) return null;
-    try {
-      return JSON.parse(v);
-    } catch (e) {
-      return null;
+    const user = localStorage.getItem('user');
+    if (user) {
+      return JSON.parse(user);
     }
+    return null;
   }
 
   clearUser() {
