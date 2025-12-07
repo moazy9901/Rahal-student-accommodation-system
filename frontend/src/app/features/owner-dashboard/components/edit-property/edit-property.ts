@@ -9,6 +9,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { PropertyService } from '../../../../core/services/property/property.service';
 import { AuthService } from '../../../../core/services/authService/auth.service';
 import { Property } from '../../../../core/models/property.model';
+import { environment } from '../../../../environments/environment';
 
 interface CityData {
   id: number;
@@ -107,6 +108,7 @@ export class EditProperty implements OnInit {
     this.registerControlListeners();
   }
 
+
   loadProperty(id: number) {
     this.isLoading = true;
     console.log('Starting to load property with ID:', id);
@@ -136,7 +138,9 @@ export class EditProperty implements OnInit {
         }, 2000);
       }
     });
-  }  populateFormWithProperty(property: any) {
+  }
+
+  populateFormWithProperty(property: any) {
     console.log('===============================');
     console.log('POPULATE FORM CALLED');
     console.log('Property object:', property);
@@ -144,6 +148,10 @@ export class EditProperty implements OnInit {
     console.log('Property title:', property?.title);
     console.log('Property keys:', Object.keys(property || {}));
     console.log('===============================');
+
+    // Clear existing preview images before loading new ones
+    this.previewImages = [];
+    this.existingImages = [];
 
     // Extract city and area IDs from nested location structure
     const cityId = property.location?.city?.id;
@@ -212,14 +220,20 @@ export class EditProperty implements OnInit {
     if (property.images && Array.isArray(property.images)) {
       this.existingImages = property.images;
       property.images.forEach((img: any) => {
-        const imageUrl = img.url || img.path || '';
+        // Try to get the URL from the response
+        let imageUrl = img.url || '';
+
+        // If no URL, construct it from the path using environment
+        if (!imageUrl && img.path) {
+          imageUrl = `${environment.imageUrl}/storage/${img.path}`;
+        }
+
         if (imageUrl) {
+          console.log('Adding existing image:', imageUrl);
           this.previewImages.push(imageUrl);
         }
       });
-    }
-
-    // Convert boolean values properly
+    }    // Convert boolean values properly
     const smokingAllowed = property.smoking_allowed === true || property.smoking_allowed === 1 || property.smoking_allowed === '1';
     const petsAllowed = property.pets_allowed === true || property.pets_allowed === 1 || property.pets_allowed === '1';
     const isFurnished = property.furnished === true || property.furnished === 1 || property.furnished === '1';
@@ -239,12 +253,12 @@ export class EditProperty implements OnInit {
       beds: property.beds ? parseInt(property.beds.toString()) : '',
       available_spots: property.available_spots ? parseInt(property.available_spots.toString()) : '',
       size: property.size ? parseInt(property.size.toString()) : '',
-      minimum_stay_months: '1',
-      security_deposit: 0,
+      minimum_stay_months: property.minimum_stay_months ? parseInt(property.minimum_stay_months.toString()) : '',
+      security_deposit: property.security_deposit ? parseFloat(property.security_deposit.toString()) : '',
       accommodation_type: property.accommodation_type || 'Apartment',
       university_id: property.university_id || '',
-      available_from: property.available_from || '',
-      available_to: property.available_to || '',
+      available_from: this.formatDate(property.available_from),
+      available_to: this.formatDate(property.available_to),
       smoking_allowed: smokingAllowed,
       pets_allowed: petsAllowed,
       furnished: isFurnished,
@@ -318,8 +332,8 @@ export class EditProperty implements OnInit {
       smoking_allowed: [false],
       pets_allowed: [false],
       furnished: [false],
-      contact_phone: ['', [Validators.required, Validators.pattern(/^\+?(\d[\d\s\-()]{6,14}\d)$/)]],
-      contact_email: ['', [Validators.required, Validators.email]],
+      contact_phone: [{value: '', disabled: true}],
+      contact_email: [{value: '', disabled: true}],
       images: [null as File[] | null],
       amenities: [[] as number[]],
       payment_methods: [[] as string[]],
@@ -371,22 +385,51 @@ export class EditProperty implements OnInit {
     return available > total ? { availableInvalid: true } : null;
   }
 
+  formatDate(dateString: string | null): string {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const day = ('0' + date.getDate()).slice(-2);
+
+  return `${year}-${month}-${day}`;   // <-- Angular-friendly
+}
+
+
   onFileChange(event: any) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const files: FileList = event.target.files;
+  if (!files || files.length === 0) return;
 
-    const fileArray: File[] = Array.from(files);
-    this.propertyForm.patchValue({ images: fileArray });
+  // Convert FileList → File[]
+  const fileArray = Array.from(files);
 
-    this.previewImages = [...this.existingImages.map(img => img.image_path)];
-    fileArray.forEach((file: File) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewImages.push(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  // Update form images
+  this.propertyForm.patchValue({ images: fileArray });
+
+  // Reset preview list
+  this.previewImages = [];
+
+  // BASE URL for Laravel storage
+  const BASE_URL = '/storage/';
+
+  // 1) Add existing images (from database)
+  if (this.existingImages && this.existingImages.length > 0) {
+    this.existingImages.forEach(img => {
+      this.previewImages.push(BASE_URL + img.image_path);
     });
   }
+
+  // 2) Add previews for newly uploaded files
+  fileArray.forEach((file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.previewImages.push(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 
   toggleAmenity(amenityId: number) {
     const index = this.selectedAmenityIds.indexOf(amenityId);
@@ -484,32 +527,32 @@ export class EditProperty implements OnInit {
 
     const formValue = this.propertyForm.value;
 
-    // Add required fields
-    formData.append('title', formValue.title);
-    formData.append('description', formValue.description);
-    formData.append('price', formValue.price);
-    formData.append('address', formValue.address);
-    formData.append('city_id', formValue.city_id);
-    formData.append('area_id', formValue.area_id);
-    formData.append('gender_requirement', formValue.gender_requirement);
-    formData.append('total_rooms', formValue.total_rooms);
-    formData.append('available_rooms', formValue.available_rooms);
-    formData.append('bathrooms_count', formValue.bathrooms_count);
-    formData.append('beds', formValue.beds);
-    formData.append('available_spots', formValue.available_spots);
-    formData.append('size', formValue.size);
-    formData.append('accommodation_type', formValue.accommodation_type);
+    // Add all required and optional fields
+    formData.append('title', formValue.title || '');
+    formData.append('description', formValue.description || '');
+    formData.append('price', formValue.price || '');
+    formData.append('address', formValue.address || '');
+    formData.append('city_id', formValue.city_id || '');
+    formData.append('area_id', formValue.area_id || '');
+    formData.append('gender_requirement', formValue.gender_requirement || 'mixed');
+    formData.append('total_rooms', formValue.total_rooms || '');
+    formData.append('available_rooms', formValue.available_rooms || '');
+    formData.append('bathrooms_count', formValue.bathrooms_count || '');
+    formData.append('beds', formValue.beds || '');
+    formData.append('available_spots', formValue.available_spots || '');
+    formData.append('size', formValue.size || '');
+    formData.append('minimum_stay_months', formValue.minimum_stay_months || '1');
+    formData.append('security_deposit', formValue.security_deposit || '0');
+    formData.append('accommodation_type', formValue.accommodation_type || 'Apartment');
     formData.append(
       'university_id',
-      this.selectedUniversityId?.toString() || formValue.university_id
+      this.selectedUniversityId?.toString() || formValue.university_id || ''
     );
-    formData.append('available_from', formValue.available_from);
-    formData.append('available_to', formValue.available_to);
+    formData.append('available_from', formValue.available_from || '');
+    formData.append('available_to', formValue.available_to || '');
     formData.append('smoking_allowed', formValue.smoking_allowed ? '1' : '0');
     formData.append('pets_allowed', formValue.pets_allowed ? '1' : '0');
     formData.append('furnished', formValue.furnished ? '1' : '0');
-    formData.append('contact_phone', formValue.contact_phone);
-    formData.append('contact_email', formValue.contact_email);
     formData.append('_method', 'PUT');
 
     // Add payment methods
@@ -526,10 +569,10 @@ export class EditProperty implements OnInit {
       });
     }
 
-    // Add new images only
+    // Add new images with correct field name
     if (formValue.images && formValue.images.length > 0) {
       formValue.images.forEach((file: File) => {
-        formData.append('images[]', file);
+        formData.append('new_images[]', file);
       });
     }
 
