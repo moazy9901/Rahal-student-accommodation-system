@@ -374,7 +374,7 @@ dateCompareValidator(form: FormGroup) {
         this.msg.add({ severity: 'success', summary: 'Success', detail: 'Property created successfully' });
         this.isSubmitting = false;
         setTimeout(() => {
-          this.router.navigate(['/owner-dashboard']);
+          this.router.navigate(['/owner-dashboard/apartments']);
         }, 2000);
       },
       error: (err) => {

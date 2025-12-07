@@ -755,6 +755,41 @@ class PropertyController extends Controller
         ]);
     }
 
+    public function getOwnerProperty($id)
+    {
+        $user = Auth::user();
+
+        $property = Property::where('id', $id)
+            ->where('owner_id', $user->id)
+            ->with([
+                'owner:id,name,phone,avatar,email',
+                'city:id,name',
+                'area:id,name',
+                'images' => function ($q) {
+                    $q->orderBy('priority');
+                },
+                'amenities',
+                'activeRentals.tenant:id,name,avatar',
+                'rentalRequests' => function ($q) {
+                    $q->where('status', 'pending')
+                        ->with('user:id,name,avatar');
+                }
+            ])
+            ->first();
+
+        if (!$property) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Property not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $property
+        ]);
+    }
+
     public function getTenantProperties(Request $request)
     {
         $user = Auth::user();
