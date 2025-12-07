@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PropertySearchController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\AmenityController;
+use App\Http\Controllers\Api\V1\PropertySaveController;
 use App\Http\Controllers\Api\V1\RecommendationController;
 use App\Http\Controllers\Api\V1\HomeController;
 
@@ -58,10 +59,10 @@ Route::prefix('properties')->group(function () {
     Route::get('/universities/{id}', [LocationController::class, 'getUniversitiesByCity']);
     Route::get('/', [PropertyController::class, 'index']);
 
-    Route::get('/{id}', [PropertyController::class, 'show']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [PropertyController::class, 'store']);
         Route::get('/my-properties', [PropertyController::class, 'getOwnerProperties']);
+        Route::get('/my-properties/{id}', [PropertyController::class, 'getOwnerProperty']);
         Route::get('/my-rentals', [PropertyController::class, 'getTenantProperties']);
         Route::get('/statistics', [PropertyController::class, 'getOwnerStatistics']);
 
@@ -74,6 +75,9 @@ Route::prefix('properties')->group(function () {
 
         Route::post('/rentals/{id}/terminate', [PropertyController::class, 'terminateRental']);
     });
+
+    // This route must come AFTER specific routes like /my-properties to avoid shadowing them
+    Route::get('/{id}', [PropertyController::class, 'show']);
 });
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +108,13 @@ Route::prefix('recommendations')->group(function () {
         Route::get('/history', [RecommendationController::class, 'getHistory'])
             ->name('recommendations.history');
     });
+});
+
+
+// favourites api routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('property/{id}/favourite', [PropertySaveController::class, 'toggle']);
+    Route::get('/my-favourites', [PropertySaveController::class, 'myFavourites']);
 });
 
 /*
