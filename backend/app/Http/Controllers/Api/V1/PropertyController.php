@@ -1236,7 +1236,6 @@ class PropertyController extends Controller
             ];
 
             return response()->json($response);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
