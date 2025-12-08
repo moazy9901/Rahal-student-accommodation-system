@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\AmenityController;
 use App\Http\Controllers\Api\V1\PropertySaveController;
 use App\Http\Controllers\Api\V1\RecommendationController;
 use App\Http\Controllers\Api\V1\HomeController;
+use App\Http\Controllers\Api\V1\DashboardController;
 
 
 Route::get('/home/latest-properties', [HomeController::class, 'latestPropertiesByCity']);
@@ -117,6 +118,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-favourites', [PropertySaveController::class, 'myFavourites']);
 });
 
+// Dashboard API routes
+Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'stats']);
+    Route::get('/users-per-month', [DashboardController::class, 'usersPerMonth']);
+    Route::get('/users-by-role', [DashboardController::class, 'usersByRole']);
+    Route::get('/properties-per-city', [DashboardController::class, 'propertiesPerCity']);
+    Route::get('/properties-by-status', [DashboardController::class, 'propertiesByStatus']);
+    Route::get('/messages-by-priority', [DashboardController::class, 'messagesByPriority']);
+});
 /*
 |--------------------------------------------------------------------------
 | Route Testing Examples
