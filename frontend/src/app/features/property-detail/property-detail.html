@@ -65,7 +65,7 @@
 
           <!-- Heart Button -->
           <button
-            (click)="onToggleSave()"
+             (click)="onToggleSave(prop.id)"
             class="absolute top-4 right-4 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-3 shadow-lg transition-all duration-200 z-20"
             [attr.aria-label]="isSaved() ? 'Remove from saved' : 'Save property'"
             type="button"
@@ -94,7 +94,7 @@
           ></i>
           <p class="text-gray-500 dark:text-gray-400">No images available</p>
           <button
-            (click)="onToggleSave()"
+            (click)="onToggleSave(prop.id)"
             class="absolute top-4 right-4 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-3 shadow-lg transition-all duration-200"
             [attr.aria-label]="isSaved() ? 'Remove from saved' : 'Save property'"
             type="button"
@@ -435,7 +435,7 @@
           <!-- Action Buttons -->
           <div class="space-y-3">
             <button
-              (click)="onToggleSave()"
+              (click)="onToggleSave(prop.id)"
               class="w-full flex items-center justify-center gap-2 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <i

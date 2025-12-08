@@ -275,6 +275,12 @@ class Property extends Model
             ->where('document_type', 'contract');
     }
 
+    public function university()
+    {
+        return $this->belongsTo(University::class);
+    }
+
+
     /**
      * Get active contract for this property.
      */
