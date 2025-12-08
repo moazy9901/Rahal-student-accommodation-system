@@ -15,9 +15,60 @@ use App\Models\City;
 use App\Models\Area;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PropertyController extends Controller
 {
+
+    public function getSimilarProperties(int $id)
+    {
+        try {
+            $currentProperty = Property::findOrFail($id);
+
+            // Get area_id (location_id in properties table)
+            $areaId = $currentProperty->location_id;
+
+            // First: Try to get properties from same area
+            $similarProperties = Property::with(['area', 'images', 'amenities', 'owner', 'rentals.tenant'])
+                ->where('id', '!=', $id)
+                ->where('area_id', $areaId)
+                ->where('status', 'available')
+                ->limit(4)
+                ->get();
+
+            // If less than 4, get more from same city
+            if ($similarProperties->count() < 4) {
+                $needed = 4 - $similarProperties->count();
+                $existingIds = $similarProperties->pluck('id')->push($id)->toArray();
+
+                $cityId = $currentProperty->area->city_id;
+
+                $additionalProperties = Property::with(['area.city', 'images', 'amenities', 'owner', 'rentals.tenant'])
+                    ->whereNotIn('id', $existingIds)
+                    ->whereHas('area', function ($q) use ($cityId) {
+                        $q->where('city_id', $cityId);
+                    })
+                    ->where('status', 'available')
+                    ->limit($needed)
+                    ->get();
+
+                $similarProperties = $similarProperties->merge($additionalProperties);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $similarProperties,
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching similar properties: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch similar properties' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function index(Request $request)
     {
@@ -278,6 +329,11 @@ class PropertyController extends Controller
             'rentalRequests' => function ($q) {
                 $q->where('status', 'pending')
                     ->with('user:id,name,avatar');
+            },
+            'comments.user',
+            'rentals' => function ($query) {
+                $query->where('status', 'active')
+                    ->with('tenant');
             }
         ])->find($id);
 
@@ -356,7 +412,7 @@ class PropertyController extends Controller
             'city_id' => 'sometimes|exists:cities,id',
             'area_id' => 'sometimes|exists:areas,id',
 
-            'gender_requirement' => 'sometimes|in:male,female,mixed',
+            'gender_requirement' => 'sometimes|in:male,female',
             'smoking_allowed' => 'sometimes|boolean',
             'pets_allowed' => 'sometimes|boolean',
             'furnished' => 'sometimes|boolean',
@@ -367,11 +423,9 @@ class PropertyController extends Controller
             'beds' => 'sometimes|integer|min:1',
             'available_spots' => 'sometimes|integer|min:0',
             'size' => 'nullable|integer|min:0',
-            'minimum_stay_months' => 'sometimes|integer|min:1',
-            'security_deposit' => 'sometimes|numeric|min:0',
 
             'accommodation_type' => 'nullable|string|max:100',
-            'university_id' => 'sometimes|exists:universities,id',
+            'university_id' => 'required|exists:universities,id',
 
             'available_from' => 'sometimes|date',
             'available_to' => 'nullable|date|after:available_from',
@@ -415,8 +469,6 @@ class PropertyController extends Controller
                 'beds',
                 'available_spots',
                 'size',
-                'minimum_stay_months',
-                'security_deposit',
                 'accommodation_type',
                 'university_id',
                 'available_from',
@@ -756,41 +808,6 @@ class PropertyController extends Controller
         return response()->json([
             'success' => true,
             'data' => $properties
-        ]);
-    }
-
-    public function getOwnerProperty($id)
-    {
-        $user = Auth::user();
-
-        $property = Property::where('id', $id)
-            ->where('owner_id', $user->id)
-            ->with([
-                'owner:id,name,phone,avatar,email',
-                'city:id,name',
-                'area:id,name',
-                'images' => function ($q) {
-                    $q->orderBy('priority');
-                },
-                'amenities',
-                'activeRentals.tenant:id,name,avatar',
-                'rentalRequests' => function ($q) {
-                    $q->where('status', 'pending')
-                        ->with('user:id,name,avatar');
-                }
-            ])
-            ->first();
-
-        if (!$property) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Property not found'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $property
         ]);
     }
 
