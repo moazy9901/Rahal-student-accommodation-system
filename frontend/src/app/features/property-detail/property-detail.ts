@@ -1,6 +1,6 @@
 // src/app/components/property-detail/property-detail.component.ts
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed,Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
@@ -31,6 +31,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { FavouriteService } from '../../core/services/favourite/favourite-service';
 
 @Component({
   selector: 'app-property-detail',
@@ -61,6 +62,8 @@ export class PropertyDetail implements OnInit {
   // Booking modal
   bookingDialogVisible = signal(false);
   bookingForm!: FormGroup;
+
+
 
   // Comment modal
   commentDialogVisible = signal(false);
@@ -160,7 +163,8 @@ export class PropertyDetail implements OnInit {
     private router: Router,
     private propertyService: PropertyService,
     private messageService: MessageService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private favouriteService:FavouriteService
   ) {}
 
   ngOnInit(): void {
@@ -272,24 +276,28 @@ export class PropertyDetail implements OnInit {
   /**
    * Toggle save/favorite status
    */
-  onToggleSave(): void {
-    const prop = this.property();
-    if (!prop) return;
+  onToggleSave(id:number): void {
 
-    this.propertyService.toggleSaved(prop.id).subscribe({
-      next: (response) => {
-        this.isSaved.set(response.saved);
-        this.showMessage(
-          'success',
-          response.saved ? 'Saved!' : 'Removed',
-          response.message
-        );
-      },
-      error: (error) => {
-        console.error('Error toggling save:', error);
-        this.showMessage('error', 'Error', 'Failed to update saved status');
-      },
+
+  this.favouriteService.toggleFavourite(id).subscribe((res:any) => {
+    this.isSaved.set(!this.isSaved()); // signal update
+
+
+  const msg = res.is_favourite
+      ? 'Property has been saved successfully.'
+      : 'Property has been removed successfully.';
+
+    this.messageService.add({
+      severity: res.is_favourite ? 'success' : 'warn',
+      summary: res.is_favourite ? 'Saved!' : 'Removed',
+      detail: msg,
+      life: 3000,
     });
+
+  });
+
+
+
   }
 
   /**

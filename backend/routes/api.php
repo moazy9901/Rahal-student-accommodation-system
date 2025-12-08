@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PropertySearchController;
 use App\Http\Controllers\Api\V1\RecommendationController;
 use App\Http\Controllers\Api\V1\PropertyCommentController;
+use App\Http\Controllers\Api\V1\PropertySaveController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -140,4 +142,11 @@ Route::prefix('recommendations')->group(function () {
 Route::prefix('messages')->group(function () {
     Route::get('/', [MessageController::class, 'index']);
     Route::post('/', [MessageController::class, 'store']);
+});
+// Favourite properties routes
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/property/{id}/favourite', [PropertySaveController::class, 'toggle']);
+
+    Route::get('/my-favourites', [PropertySaveController::class, 'myFavourites']);
 });
