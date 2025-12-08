@@ -70,6 +70,7 @@ Route::prefix('locations')->group(function () {
 | Property Routes
 |--------------------------------------------------------------------------
 */
+Route::get('/home/latest-properties', [HomeController::class, 'latestPropertiesByCity']);
 Route::prefix('properties')->group(function () {
     // Public Property Routes
     Route::get('/', [PropertyController::class, 'index']);
