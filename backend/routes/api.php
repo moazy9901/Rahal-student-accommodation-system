@@ -59,11 +59,11 @@ Route::middleware('auth:sanctum')->group(function () {
 | Location & Reference Data Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('locations')->group(function () {
-    Route::get('cities', [CityController::class, 'index']);
-    Route::get('cities/{city}/areas', [CityController::class, 'areas']);
-    Route::get('amenities', [AmenityController::class, 'index']);
-});
+
+Route::get('cities', [CityController::class, 'index']);
+Route::get('cities/{city}/areas', [CityController::class, 'areas']);
+Route::get('amenities', [AmenityController::class, 'index']);
+
 
 /*
 |--------------------------------------------------------------------------
