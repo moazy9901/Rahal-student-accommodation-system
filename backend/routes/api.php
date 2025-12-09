@@ -95,6 +95,7 @@ Route::prefix('properties')->group(function () {
 
         // User Property Lists
         Route::get('/my-properties', [PropertyController::class, 'getOwnerProperties']);
+        Route::get('/my-properties/{id}', [PropertyController::class, 'getOwnerProperty']);
         Route::get('/my-rentals', [PropertyController::class, 'getTenantProperties']);
         Route::get('/statistics', [PropertyController::class, 'getOwnerStatistics']);
 
