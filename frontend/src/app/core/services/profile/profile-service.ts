@@ -43,5 +43,11 @@ saveProfile(payload: Partial<StudentProfileData> | FormData): Observable<any> {
   return this.http.post<any>(`${this.base}/profile`, payload, { headers });
 }
 
+// DELETE /profile/avatar (remove avatar)
+removeAvatar(): Observable<any> {
+  const token = localStorage.getItem('api_token');
+  const headers = { Authorization: `Bearer ${token}` };
+  return this.http.delete<any>(`${this.base}/profile/avatar`, { headers });
+}
 
 }

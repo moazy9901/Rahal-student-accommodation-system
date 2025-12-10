@@ -267,9 +267,89 @@ onAvatarChange(event: Event) {
 
   const reader = new FileReader();
   reader.onload = () => {
-    this.avatarPreview = reader.result as string; // preview only
+    this.avatarPreview = reader.result as string;
+    
+    // Show preview confirmation dialog
+    Swal.fire({
+      title: 'Update Photo?',
+      html: `
+        <div class="flex flex-col items-center gap-4">
+          <img src="${this.avatarPreview}" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg" />
+          <p class="text-gray-600 dark:text-gray-300">Confirm to update your profile photo</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Update Photo',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#f97316',
+      cancelButtonColor: '#6b7280',
+      customClass: {
+        popup: 'bg-white dark:bg-gray-900 rounded-2xl',
+        title: 'dark:text-white',
+        htmlContainer: 'dark:text-gray-300',
+        confirmButton: 'py-2 px-6 rounded-lg',
+        cancelButton: 'py-2 px-6 rounded-lg',
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.saveAvatarOnly();
+      } else {
+        // Reset on cancel
+        this.selectedAvatarFile = null;
+        this.avatarPreview = null;
+        input.value = '';
+      }
+    });
   };
   reader.readAsDataURL(this.selectedAvatarFile);
+}
+
+saveAvatarOnly() {
+  if (!this.selectedAvatarFile) {
+    this.showToastMessage('No file selected', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('avatar', this.selectedAvatarFile);
+
+  this.profileSrv.saveProfile(formData).subscribe({
+    next: (res: any) => {
+      this.showToastMessage('Photo updated successfully', 'success');
+      
+      if (res && res.profile && res.profile.avatar) {
+        let avatarUrl = res.profile.avatar;
+        if (avatarUrl.includes('/images/users/')) {
+          avatarUrl = avatarUrl.replace('://localhost:8000/', '://localhost:8000/storage/');
+        }
+        this.profile.avatar = avatarUrl;
+        this.user.avatar = res.profile.avatar;
+      }
+      
+      this.selectedAvatarFile = null;
+      this.avatarPreview = null;
+      this.cdr.detectChanges();
+      
+      Swal.fire({
+        title: 'Success!',
+        text: 'Your photo has been updated.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'bg-white dark:bg-gray-900 rounded-2xl',
+          title: 'dark:text-white',
+          htmlContainer: 'dark:text-gray-300',
+        }
+      });
+    },
+    error: (err: any) => {
+      this.showToastMessage('Failed to update photo. Please try again.', 'error');
+      console.error('Error uploading avatar:', err);
+      this.selectedAvatarFile = null;
+      this.avatarPreview = null;
+    }
+  });
 }
 
 
@@ -383,7 +463,7 @@ openAvatarModal() {
       <div class="relative flex flex-col items-center">
 
         <!-- Floating Glow Circle -->
-        <div class="absolute w-40 h-40 bg-gradient-to-r from-orange-500 to-pink-500
+        <div class="absolute w-40 h-40 bg-linear-to-r from-orange-500 to-pink-500
                     rounded-full blur-2xl opacity-40 animate-glow"></div>
 
         <!-- Avatar -->
@@ -400,17 +480,17 @@ openAvatarModal() {
         </p>
 
         <!-- Upload Button -->
-        <label for="avatarInput"
-               class="w-full mt-3 cursor-pointer py-3 rounded-xl text-white font-semibold
-                      bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg
-                      hover:scale-105 transition-all flex items-center justify-center gap-2">
+        <button id="changePhotoBtn"
+                class="w-full mt-3 cursor-pointer py-3 rounded-xl text-white font-semibold
+                       bg-linear-to-r from-orange-500 to-pink-500 shadow-lg
+                       hover:scale-105 transition-all flex items-center justify-center gap-2">
           <i class="pi pi-camera"></i> Change Photo
-        </label>
+        </button>
 
         <!-- Remove -->
         <button id="removeAvatarBtn"
                 class="w-full mt-2 py-3 rounded-xl text-white font-semibold
-                       bg-gradient-to-r from-red-500 to-rose-500 shadow-lg
+                       bg-linear-to-r from-red-500 to-rose-500 shadow-lg
                        hover:scale-105 transition-all flex items-center justify-center gap-2">
           <i class="pi pi-times"></i> Remove Photo
         </button>
@@ -421,15 +501,78 @@ openAvatarModal() {
     showCloseButton: true,
     customClass: {
       popup: 'bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-2xl animate-popupEnter',
+      title: 'dark:text-white',
+      htmlContainer: 'dark:text-gray-300',
     },
     didOpen: () => {
-      // Remove Avatar Function
-      const removeBtn = document.getElementById('removeAvatarBtn');
-      removeBtn?.addEventListener('click', () => {
-        this.avatarPreview = null;
-        Swal.close();
+      // Change Photo Button - Click file input
+      const changePhotoBtn = document.getElementById('changePhotoBtn');
+      changePhotoBtn?.addEventListener('click', () => {
+        const fileInput = document.getElementById('avatarInput') as HTMLInputElement;
+        fileInput?.click();
       });
 
+      // Remove Avatar Button - Confirm removal
+      const removeBtn = document.getElementById('removeAvatarBtn');
+      removeBtn?.addEventListener('click', () => {
+        Swal.close();
+        this.confirmRemoveAvatar();
+      });
+    }
+  });
+}
+
+confirmRemoveAvatar() {
+  Swal.fire({
+    title: 'Remove Photo?',
+    text: 'Are you sure you want to remove your profile photo?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Remove',
+    cancelButtonText: 'Cancel',
+    customClass: {
+      popup: 'bg-white dark:bg-gray-900 rounded-2xl',
+      title: 'dark:text-white',
+      htmlContainer: 'dark:text-gray-300',
+      confirmButton: 'py-2 px-6 rounded-lg',
+      cancelButton: 'py-2 px-6 rounded-lg',
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.removeAvatarFromDatabase();
+    }
+  });
+}
+
+removeAvatarFromDatabase() {
+  this.profileSrv.removeAvatar().subscribe({
+    next: (res: any) => {
+      this.showToastMessage('Photo removed successfully', 'success');
+      this.profile.avatar = null;
+      this.profileForm.patchValue({ avatar: null });
+      this.avatarPreview = null;
+      this.selectedAvatarFile = null;
+      this.user.avatar = null;
+      this.cdr.detectChanges();
+      
+      Swal.fire({
+        title: 'Removed!',
+        text: 'Your photo has been removed.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'bg-white dark:bg-gray-900 rounded-2xl',
+          title: 'dark:text-white',
+          htmlContainer: 'dark:text-gray-300',
+        }
+      });
+    },
+    error: (err: any) => {
+      this.showToastMessage('Failed to remove photo. Please try again.', 'error');
+      console.error('Error removing avatar:', err);
     }
   });
 }

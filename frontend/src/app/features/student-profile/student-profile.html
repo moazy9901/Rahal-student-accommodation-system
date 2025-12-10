@@ -805,6 +805,15 @@
   </div>
 </div>
 
+<!-- Hidden File Input for Avatar Upload -->
+<input
+  type="file"
+  id="avatarInput"
+  accept="image/*"
+  (change)="onAvatarChange($event)"
+  class="hidden"
+/>
+
 <style>
   @keyframes slideLeft {
     from {

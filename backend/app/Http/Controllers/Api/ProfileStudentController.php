@@ -146,4 +146,36 @@ class ProfileStudentController extends Controller
             'profile' => $profile
         ]);
     }
+
+    public function removeAvatar()
+    {
+        $userId = Auth::id();
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Delete avatar file from storage if it exists
+        if ($user->avatar) {
+            $filePath = public_path($user->avatar);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+
+        // Remove avatar from database
+        $user->avatar = null;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Avatar removed successfully',
+            'profile' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => null,
+            ]
+        ]);
+    }
 }
+
