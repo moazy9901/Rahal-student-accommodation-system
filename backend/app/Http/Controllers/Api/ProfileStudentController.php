@@ -205,14 +205,14 @@ class ProfileStudentController extends Controller
             $extension = $file->extension() ?: 'png';
             $fileName = 'avatar_' . Auth::id() . '_' . time() . '.' . $extension;
             $folder = public_path('images/users/avatar');
-            
+
             if (!file_exists($folder)) {
                 mkdir($folder, 0777, true);
             }
-            
+
             $file->move($folder, $fileName);
             $avatarPath = 'images/users/avatar/' . $fileName;
-            
+
             // Update user avatar
             $user->avatar = $avatarPath;
             $user->save();

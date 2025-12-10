@@ -313,18 +313,27 @@ saveAvatarOnly() {
   this.profileSrv.uploadAvatar(this.selectedAvatarFile).subscribe({
     next: (res: any) => {
       this.showToastMessage('Photo updated successfully', 'success');
-      
+
       if (res && res.profile && res.profile.avatar) {
-        let avatarUrl = res.profile.avatar;
-        // avatarUrl is already full URL from asset(), just use it
-        this.profile.avatar = avatarUrl;
-        this.user.avatar = res.profile.avatar;
+        // Extract just the path from the full URL
+        // Full URL: http://localhost:8000/storage/images/users/avatar/avatar_23_1702225800.jpg
+        // We need just: images/users/avatar/avatar_23_1702225800.jpg
+        let avatarPath = res.profile.avatar;
+        if (avatarPath.includes('/storage/')) {
+          avatarPath = avatarPath.split('/storage/')[1]; // Get path after /storage/
+        }
+        
+        this.profile.avatar = avatarPath;
+        this.user.avatar = avatarPath;
+        
+        // Update user in localStorage so navbar and other components reflect the change
+        this.auth.updateUserAvatar(avatarPath);
       }
-      
+
       this.selectedAvatarFile = null;
       this.avatarPreview = null;
       this.cdr.detectChanges();
-      
+
       Swal.fire({
         title: 'Success!',
         text: 'Your photo has been updated.',
@@ -548,6 +557,10 @@ removeAvatarFromDatabase() {
       this.avatarPreview = null;
       this.selectedAvatarFile = null;
       this.user.avatar = null;
+      
+      // Update user in localStorage
+      this.auth.updateUserAvatar(null);
+      
       this.cdr.detectChanges();
 
       Swal.fire({
