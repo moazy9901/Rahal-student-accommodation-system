@@ -95,7 +95,7 @@ class ProfileStudentController extends Controller
             $file = $request->file('avatar');
             $extension = $file->extension() ?: 'png';
             $fileName = 'avatar_' . Auth::id() . '_' . time() . '.' . $extension;
-            $folder = public_path('images/users/avatar');
+            $folder = storage_path('app/public/images/users/avatar');
             if (!file_exists($folder)) {
                 mkdir($folder, 0777, true);
             }
@@ -107,7 +107,7 @@ class ProfileStudentController extends Controller
             $base64Str = substr($data['avatar'], strpos($data['avatar'], ',') + 1);
             $image = base64_decode($base64Str);
             $fileName = 'avatar_' . Auth::id() . '_' . time() . '.' . $extension;
-            $folder = public_path('images/users/avatar');
+            $folder = storage_path('app/public/images/users/avatar');
             if (!file_exists($folder)) {
                 mkdir($folder, 0777, true);
             }
@@ -158,7 +158,7 @@ class ProfileStudentController extends Controller
 
         // Delete avatar file from storage if it exists
         if ($user->avatar) {
-            $filePath = public_path($user->avatar);
+            $filePath = storage_path('app/public/' . $user->avatar);
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
@@ -193,18 +193,18 @@ class ProfileStudentController extends Controller
 
         // Delete old avatar if exists
         if ($user->avatar) {
-            $filePath = public_path($user->avatar);
-            if (file_exists($filePath)) {
-                unlink($filePath);
+            $storagePath = storage_path('app/public/' . $user->avatar);
+            if (file_exists($storagePath)) {
+                unlink($storagePath);
             }
         }
 
-        // Upload new avatar
+        // Upload new avatar to storage
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
             $extension = $file->extension() ?: 'png';
             $fileName = 'avatar_' . Auth::id() . '_' . time() . '.' . $extension;
-            $folder = public_path('images/users/avatar');
+            $folder = storage_path('app/public/images/users/avatar');
 
             if (!file_exists($folder)) {
                 mkdir($folder, 0777, true);
@@ -222,7 +222,7 @@ class ProfileStudentController extends Controller
                 'profile' => [
                     'name' => $user->name,
                     'email' => $user->email,
-                    'avatar' => $avatarPath  // Return just the path, not asset()
+                    'avatar' => $avatarPath
                 ]
             ]);
         }
