@@ -101,15 +101,21 @@ export class RecommendationComponent implements OnInit {
     this.recommendationService.getQuestions().subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.allQuestions.set(response.data);
+          // Parse options if they're JSON strings
+          const parsedQuestions = response.data.map(q => ({
+            ...q,
+            options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+          }));
+          
+          this.allQuestions.set(parsedQuestions);
 
           // Group questions by category
-          const categories = this.recommendationService.getCategoriesInOrder(response.data);
+          const categories = this.recommendationService.getCategoriesInOrder(parsedQuestions);
           this.categories.set(categories);
 
           const grouped: QuestionGroup[] = categories.map(category => ({
             category,
-            questions: response.data.filter(q => q.category === category)
+            questions: parsedQuestions.filter(q => q.category === category)
           }));
 
           this.questionGroups.set(grouped);
@@ -287,5 +293,35 @@ export class RecommendationComponent implements OnInit {
 
   isTextQuestion(question: RecommendationQuestion): boolean {
     return this.getQuestionType(question) === 'text';
+  }
+
+  /**
+   * Get options array from question, handling JSON string parsing
+   */
+  getOptions(question: RecommendationQuestion): any[] {
+    if (!question.options) return [];
+    
+    // If it's already an array, return it
+    if (Array.isArray(question.options)) {
+      return question.options;
+    }
+    
+    // If it's a string (JSON), parse it
+    if (typeof question.options === 'string') {
+      try {
+        const parsed = JSON.parse(question.options);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error('Error parsing options:', e);
+        return [];
+      }
+    }
+    
+    // If it's an object (for range questions), return as array
+    if (typeof question.options === 'object') {
+      return [question.options];
+    }
+    
+    return [];
   }
 }

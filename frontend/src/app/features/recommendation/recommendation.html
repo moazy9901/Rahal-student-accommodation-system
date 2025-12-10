@@ -96,7 +96,7 @@
 
           <!-- Single Select -->
           <div *ngIf="isSelectQuestion(question)" class="space-y-2">
-            <div *ngFor="let option of question.options" class="flex items-center">
+            <div *ngFor="let option of getOptions(question)" class="flex items-center">
               <input
                 type="radio"
                 [id]="'option_' + question.id + '_' + option"
@@ -115,7 +115,7 @@
 
           <!-- Multiple Select -->
           <div *ngIf="isMultiSelectQuestion(question)" class="space-y-2">
-            <div *ngFor="let option of question.options" class="flex items-center">
+            <div *ngFor="let option of getOptions(question)" class="flex items-center">
               <input
                 type="checkbox"
                 [id]="'multi_' + question.id + '_' + option"
@@ -136,15 +136,15 @@
           <div *ngIf="isRangeQuestion(question)" class="space-y-2">
             <input
               type="range"
-              [min]="question.options?.[0]?.min || 0"
-              [max]="question.options?.[0]?.max || 100"
+              [min]="getOptions(question)?.[0]?.min || 0"
+              [max]="getOptions(question)?.[0]?.max || 100"
               [value]="formAnswers()[question.id] || 50"
               (change)="updateAnswer(question.id, $event.target.value)"
               class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#9810fa]">
             <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-              <span>{{question.options?.[0]?.min || 0}}</span>
+              <span>{{getOptions(question)?.[0]?.min || 0}}</span>
               <span class="font-semibold text-[#9810fa] text-lg">{{formAnswers()[question.id] || 50}}</span>
-              <span>{{question.options?.[0]?.max || 100}}</span>
+              <span>{{getOptions(question)?.[0]?.max || 100}}</span>
             </div>
           </div>
 
