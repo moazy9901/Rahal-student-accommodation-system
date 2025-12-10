@@ -222,7 +222,7 @@ class ProfileStudentController extends Controller
                 'profile' => [
                     'name' => $user->name,
                     'email' => $user->email,
-                    'avatar' => asset($avatarPath)
+                    'avatar' => $avatarPath  // Return just the path, not asset()
                 ]
             ]);
         }

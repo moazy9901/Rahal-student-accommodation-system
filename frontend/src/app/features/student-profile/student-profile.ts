@@ -84,29 +84,14 @@ showToast: boolean = false;
 loadProfile() {
   this.profileSrv.getProfile().subscribe({
     next: ({ profile }) => {
+      // Backend returns avatar as path: images/users/avatar/avatar_23_...jpg
+      // avatarUrl() method will handle building the full URL
+      if (!profile.avatar) {
+        profile.avatar = null;
+      }
 
-      /** -----------------------------
-       * Fix avatar storage path
-       * ------------------------------ */
-      // Fix avatar path by inserting /storage/ after the domain
-if (profile.avatar) {
-  // Example: http://localhost:8000/images/users/file.jpg
-  const url = profile.avatar;
-
-  if (url.includes('/images/users/')) {
-    // Insert /storage after the base URL
-    profile.avatar = url.replace(
-      '://localhost:8000/',
-      '://localhost:8000/storage/'
-    );
-  }
-} else {
-  profile.avatar = '/assets/default-avatar.png';
-}
-
-
-      this.cdr.detectChanges();
       this.profile = profile;
+      this.cdr.detectChanges();
 
       console.log(this.profile);
 
@@ -315,18 +300,11 @@ saveAvatarOnly() {
       this.showToastMessage('Photo updated successfully', 'success');
 
       if (res && res.profile && res.profile.avatar) {
-        // Extract just the path from the full URL
-        // Full URL: http://localhost:8000/storage/images/users/avatar/avatar_23_1702225800.jpg
-        // We need just: images/users/avatar/avatar_23_1702225800.jpg
-        let avatarPath = res.profile.avatar;
-        if (avatarPath.includes('/storage/')) {
-          avatarPath = avatarPath.split('/storage/')[1]; // Get path after /storage/
-        }
+        // Backend returns just the path: images/users/avatar/avatar_23_1702225800.jpg
+        const avatarPath = res.profile.avatar;
         
         this.profile.avatar = avatarPath;
         this.user.avatar = avatarPath;
-        
-        // Update user in localStorage so navbar and other components reflect the change
         this.auth.updateUserAvatar(avatarPath);
       }
 
@@ -557,10 +535,10 @@ removeAvatarFromDatabase() {
       this.avatarPreview = null;
       this.selectedAvatarFile = null;
       this.user.avatar = null;
-      
+
       // Update user in localStorage
       this.auth.updateUserAvatar(null);
-      
+
       this.cdr.detectChanges();
 
       Swal.fire({
