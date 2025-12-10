@@ -87,7 +87,7 @@ loadProfile() {
       // Backend returns avatar as path: images/users/avatar/avatar_23_...jpg
       // avatarUrl() method will handle building the full URL
       if (!profile.avatar) {
-        profile.avatar = null;
+        profile.avatar = undefined;
       }
 
       this.profile = profile;
